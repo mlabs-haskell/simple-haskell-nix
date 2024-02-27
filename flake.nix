@@ -19,8 +19,6 @@
     haskell-nix = {
       url = "github:input-output-hk/haskell.nix";
       inputs = {
-        nixpkgs.follows = "nixpkgs";
-        nixpkgs-unstable.follows = "nixpkgs";
         hydra.follows = "empty-flake";
       };
     };
@@ -62,11 +60,10 @@
       };
 
       flake.flakeModules = flakeModules;
-      
+
       perSystem =
         { config
         , pkgs
-        , lib
         , system
         , ...
         }: {

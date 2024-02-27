@@ -1,7 +1,7 @@
 {
-  perSystem = { pkgs, self', libHaskell, ... }:
+  perSystem = { simpleHaskellNix, ... }:
     let
-      example = libHaskell.mkPackage {
+      example = simpleHaskellNix.mkPackage {
         name = "example";
         src = ./.;
       };

@@ -19,9 +19,6 @@ let
     overlays = [
       (import "${iohk-nix}/overlays/crypto")
       haskellNixOverlay
-      (final: _prev: {
-        rocm-thunk = final.rocmPackages.rocm-thunk;
-      })
     ];
   };
 in

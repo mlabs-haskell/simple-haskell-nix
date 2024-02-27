@@ -7,7 +7,6 @@
 }:
 let
   inherit (flake-parts-lib) mkPerSystemOption;
-  inherit (lib) types mkOption;
 in
 {
   options = {
@@ -21,10 +20,10 @@ in
           };
 
         in
-          {
-            _module.args.libHaskell = {
-              mkPackage = mkHaskellPackage;
-            };
+        {
+          _module.args.simpleHaskellNix = {
+            mkPackage = mkHaskellPackage;
+          };
         };
     });
   };
