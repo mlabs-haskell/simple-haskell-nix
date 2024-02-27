@@ -38,7 +38,11 @@
         inputs.hci-effects.flakeModule
         ./example
         ./docs
-      ] ++ (builtins.attrValues flakeModules);
+        (import ./src/haskell {
+          inherit (inputs) haskell-nix;
+          createPackages = true;
+        })
+      ];
 
       # `nix flake show --impure` hack
       systems =
