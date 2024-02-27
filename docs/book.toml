@@ -1,0 +1,6 @@
+[book]
+authors = ["Tomasz Maciosowski"]
+language = "en"
+multilingual = false
+src = "."
+title = "simple-haskell-nix"
