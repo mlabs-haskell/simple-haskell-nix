@@ -1,4 +1,5 @@
 { haskell-nix
+, createPackages ? false
 }:
 
 { lib
@@ -25,12 +26,13 @@ in
         in
         {
           _module.args.simpleHaskellNix = export;
+        } // (if createPackages then {
           legacyPackages = export;
 
           packages = {
             simpleHaskellNixDocsMd = simpleHaskellNix.docs;
           };
-        };
+        } else { });
     });
   };
 }
