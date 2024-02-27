@@ -21,71 +21,119 @@ let
       haskellNixOverlay
     ];
   };
-in
 
-{ name # : string
-, src # : path
-, ghcVersion ? "ghc928" # : string
-, haskellModules ? [ ]
-, externalDependencies ? [ ]
-, externalRepositories ? { }
-}:
-let
-  mkHackage = pkgs.callPackage ./mk-hackage.nix {
-    nix-tools = pkgs.haskell-nix.nix-tools-set {
-      compiler-nix-name = ghcVersion;
-    };
-  };
+  simpleHaskellNixModule = { ... }: {
+    options = {
+      name = lib.mkOption {
+        type = lib.types.str;
+        description = "Name of package";
+      };
 
-  # This looks like a noop but without it haskell.nix throws a runtime
-  # error about `pkgs` attribute not being present which is nonsense
-  # https://input-output-hk.github.io/haskell.nix/reference/library.html?highlight=cabalProject#modules
-  fixedHaskellModules = map (m: args @ { ... }: m args) haskellModules;
+      src = lib.mkOption {
+        type = lib.types.path;
+        description = "Path to package root, i.e. a directory with .cabal file";
+      };
 
-  flatExternalDependencies =
-    lib.lists.concatMap
-      (dep: [ (dep.passthru or { }).src or dep ] ++
-        (flatExternalDependencies (dep.passthru or { }).externalDependencies or [ ]));
+      ghcVersion = lib.mkOption {
+        type = lib.types.str;
+        default = "ghc928";
+        description = "Haskell compiler to use";
+      };
 
-  flattenedExternalDependencies = flatExternalDependencies externalDependencies;
+      haskellModules = lib.mkOption {
+        type = lib.types.listOf lib.types.anything;
+        default = [ ];
+        description = "";
+      };
 
-  customHackages = mkHackage {
-    srcs = map toString flattenedExternalDependencies;
-    inherit name;
-  };
+      externalDependencies = lib.mkOption {
+        type = lib.types.listOf (lib.types.oneOf [ lib.types.path lib.types.package ]);
+        default = [ ];
+        description = "";
+      };
 
-  project = pkgs.haskell-nix.cabalProject' {
-    inherit src;
-    name = name;
-
-    compiler-nix-name = ghcVersion;
-    inputMap = lib.mapAttrs (_: toString) externalRepositories;
-
-    modules = customHackages.modules ++ fixedHaskellModules;
-    inherit (customHackages) extra-hackages extra-hackage-tarballs;
-
-    shell = {
-      withHoogle = true;
-      exactDeps = true;
-
-      tools = {
-        cabal = { };
-        haskell-language-server = { };
+      externalRepositories = lib.mkOption {
+        type = lib.types.lazyAttrsOf lib.types.anything;
+        default = { };
+        description = "";
       };
     };
   };
 
-  projectFlake = project.flake { };
+  # m :: Module
+  markdownDocsFor = m:
+    let
+      docsMd = pkgs.nixosOptionsDoc {
+        options = builtins.removeAttrs (lib.evalModules { modules = [ m ]; }).options [ "_module" ];
+      };
+    in
+    pkgs.runCommand "docs.md" { } ''
+      cat ${docsMd.optionsCommonMark} >> $out
+    '';
 
-  augmentedPackages = builtins.mapAttrs
-    (_: package:
-      package // {
-        passthru = (package.passthru or { }) // {
-          inherit src externalDependencies;
+  mkPackage = { config, ... }:
+    let
+      mkHackage = pkgs.callPackage ./mk-hackage.nix {
+        nix-tools = pkgs.haskell-nix.nix-tools-set {
+          compiler-nix-name = config.ghcVersion;
         };
-      })
-    (projectFlake.packages or { });
+      };
+
+      # This looks like a noop but without it haskell.nix throws a runtime
+      # error about `pkgs` attribute not being present which is nonsense
+      # https://input-output-hk.github.io/haskell.nix/reference/library.html?highlight=cabalProject#modules
+      fixedHaskellModules = map (m: args @ { ... }: m args) config.haskellModules;
+
+      flatExternalDependencies =
+        lib.lists.concatMap
+          (dep: [ (dep.passthru or { }).src or dep ] ++
+            (flatExternalDependencies (dep.passthru or { }).externalDependencies or [ ]));
+
+      flattenedExternalDependencies = flatExternalDependencies config.externalDependencies;
+
+      customHackages = mkHackage {
+        srcs = map toString flattenedExternalDependencies;
+        inherit (config) name;
+      };
+
+      project = pkgs.haskell-nix.cabalProject' {
+        inherit (config) src name;
+
+        compiler-nix-name = config.ghcVersion;
+        inputMap = lib.mapAttrs (_: toString) config.externalRepositories;
+
+        modules = customHackages.modules ++ fixedHaskellModules;
+        inherit (customHackages) extra-hackages extra-hackage-tarballs;
+
+        shell = {
+          withHoogle = true;
+          exactDeps = true;
+
+          tools = {
+            cabal = { };
+            haskell-language-server = { };
+          };
+        };
+      };
+
+      projectFlake = project.flake { };
+
+      augmentedPackages = builtins.mapAttrs
+        (_: package:
+          package // {
+            passthru = (package.passthru or { }) // {
+              inherit (config) src externalDependencies;
+            };
+          })
+        (projectFlake.packages or { });
+    in
+    projectFlake // {
+      packages = augmentedPackages;
+    };
+
 in
-projectFlake // {
-  packages = augmentedPackages;
+{
+  mkPackage = config: mkPackage (lib.modules.evalModules { modules = [ simpleHaskellNixModule { inherit config; } ]; });
+  docs = markdownDocsFor simpleHaskellNixModule;
 }
+

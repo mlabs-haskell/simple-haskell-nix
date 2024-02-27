@@ -1,7 +1,3 @@
 # `simple-haskell-nix`
 
-![xkcd 927](https://imgs.xkcd.com/comics/standards.png)
-
-## Usage
-
-See [example](./example)
+See https://mlabs-haskell.github.io/simple-haskell-nix

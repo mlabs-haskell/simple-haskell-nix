@@ -29,7 +29,7 @@
   outputs = inputs:
     let
       flakeModules = {
-        haskell = import ./src/haskell { inherit (inputs) haskell-nix; };
+        simpleHaskellNix = import ./src/haskell { inherit (inputs) haskell-nix; };
       };
     in
     inputs.flake-parts.lib.mkFlake { inherit inputs; } ({ self, ... }: {
@@ -37,6 +37,7 @@
         inputs.pre-commit-hooks-nix.flakeModule
         inputs.hci-effects.flakeModule
         ./example
+        ./docs
       ] ++ (builtins.attrValues flakeModules);
 
       # `nix flake show --impure` hack
