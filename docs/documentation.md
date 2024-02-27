@@ -7,7 +7,7 @@ Add `simple-haskell-nix` to your flake inputs
 ```nix
 {
   inputs = {
-    simple-haskell-nix.url = "github:mlabs-haskell/simple-haskell-nix";
+    simpleHaskellNix.url = "github:mlabs-haskell/simple-haskell-nix";
     # ...
   };
   # ...
