@@ -19,6 +19,14 @@ let
     overlays = [
       (import "${iohk-nix}/overlays/crypto")
       haskellNixOverlay
+      (final: prev: {
+        haskell-nix = prev.haskell-nix // {
+          extraPkgconfigMappings = prev.haskell-nix.extraPkgconfigMappings // {
+            "libblst" = [ "blst" ];
+          };
+        };
+
+      })
     ];
   };
 
