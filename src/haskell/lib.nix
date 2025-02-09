@@ -44,7 +44,7 @@ let
 
       ghcVersion = lib.mkOption {
         type = lib.types.str;
-        default = "ghc928";
+        default = "ghc966";
         description = "Haskell compiler to use";
       };
 
