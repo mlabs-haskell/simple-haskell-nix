@@ -7,7 +7,7 @@
       };
     in
     {
-      devShells.example = example.devShell;
+      devShells.example = example.devShells.default;
       packages = {
         example = example.packages."example:exe:example";
       };
