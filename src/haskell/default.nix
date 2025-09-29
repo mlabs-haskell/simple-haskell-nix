@@ -11,7 +11,7 @@ let
 in
 {
   options = {
-    perSystem = mkPerSystemOption ({ config, system, pkgs, ... }: {
+    perSystem = mkPerSystemOption ({ system, pkgs, ... }: {
       config =
         let
           simpleHaskellNix = pkgs.callPackage ./lib.nix {
