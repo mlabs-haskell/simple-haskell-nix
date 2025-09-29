@@ -75,13 +75,12 @@
 
           pre-commit.settings = {
             hooks = {
-              deadnix.enable = true;
+              deadnix = {
+                enable = true;
+                settings.edit = true;
+              };
               nixpkgs-fmt.enable = true;
               typos.enable = true;
-            };
-
-            settings = {
-              deadnix.edit = true;
             };
           };
 
